@@ -1,0 +1,68 @@
+#!/bin/bash
+set -eux
+
+dnf update -y
+dnf install -y docker
+
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+systemctl enable docker
+systemctl start docker
+
+usermod -aG docker ec2-user
+
+mkdir -p /opt/personal-portfolio
+cd /opt/personal-portfolio
+
+cat <<EOF > .env
+DOMAIN=${domain_name}
+ECR_IMAGE=${ecr_image}
+EOF
+
+cat <<EOF > Caddyfile
+${domain_name}, www.${domain_name} {
+    encode gzip
+    reverse_proxy site:80
+}
+EOF
+
+cat <<EOF > docker-compose.yml
+services:
+  site:
+    image: ${ecr_image}
+    container_name: personal-portfolio
+    restart: unless-stopped
+    networks:
+      - portfolio-net
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - portfolio-net
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - site
+
+networks:
+  portfolio-net:
+
+volumes:
+  caddy_data:
+  caddy_config:
+EOF
+
+aws ecr get-login-password --region ${aws_region} \
+  | docker login --username AWS --password-stdin ${ecr_registry}
+
+docker compose up -d

@@ -1,0 +1,31 @@
+services:
+  site:
+    image: ${ECR_IMAGE}
+    container_name: personal-portfolio
+    restart: unless-stopped
+    networks:
+      - portfolio-net
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - portfolio-net
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - site
+
+networks:
+  portfolio-net:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
