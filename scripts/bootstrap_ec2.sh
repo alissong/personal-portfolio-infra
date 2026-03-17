@@ -20,6 +20,6 @@ aws ssm send-command \
     'cat > ${APP_DIR}/docker-compose.yml <<''\"'\"'EOF''\"'\"'\n${COMPOSE_CONTENT}\nEOF',
     'cat > ${APP_DIR}/.env <<''\"'\"'EOF''\"'\"'\n${ENV_CONTENT}\nEOF',
     'cd ${APP_DIR}',
-    'aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin 338846672827.dkr.ecr.us-east-1.amazonaws.com',
+  'aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY:-ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com}',
     'docker compose up -d'
   ]"

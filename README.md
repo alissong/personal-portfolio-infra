@@ -159,6 +159,15 @@ Example AWS profile:
 aws configure --profile personal
 ```
 
+Important: before applying the Terraform configuration you MUST fill the following values with real, environment-specific data (they are intentionally redacted in this repository):
+
+- `zone_id` — your Route53 Hosted Zone ID (set in `environments/dev/terraform.tfvars` or via tfvars for your environment)
+- `ami_id` — the AMI to use for the EC2 instance (set in `environments/dev/terraform.tfvars`)
+- `ecr_registry` — your ECR registry URI (e.g. `123456789012.dkr.ecr.us-east-1.amazonaws.com`) (set in `environments/dev/terraform.tfvars` or via environment variables used by scripts)
+- `ecr_image` — full image name and tag in ECR (set in `environments/dev/terraform.tfvars` and in `templates/.env`)
+
+These placeholders are intentionally generic to avoid leaking account-specific information. Make sure to replace them with real values before `terraform apply` or any deployment scripts (for example, set `ECR_REGISTRY` / `AWS_REGION` when running `scripts/deploy.sh`).
+
 ---
 
 # Usage
